@@ -1,0 +1,14 @@
+experiment_name: grind-test
+project_name: fouriernet
+
+dataset:
+  _target_: src.dataset.Dynabench
+  split: train
+  equation: kuramotosivashinsky
+  structure: cloud
+  resolution: high
+  
+
+hydra:
+  run:
+    dir: output/hydra/${experiment_name}/${now:%Y-%m-%d_%H-%M-%S}

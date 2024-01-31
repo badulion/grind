@@ -1,0 +1,6 @@
+hydra-core
+torch
+pytorch_lightning
+torchrbf
+dynabench
+matplotlib

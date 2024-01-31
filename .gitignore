@@ -1,0 +1,7 @@
+.venv
+output/
+data/
+kubernetes/
+**__pycache__/
+**.pyc
+**local/
