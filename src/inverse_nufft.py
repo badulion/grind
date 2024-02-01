@@ -2,17 +2,17 @@ import torch.nn as nn
 import torch    
     
 class FourierInterpolator(nn.Module):
-    def __init__(self, points, values, num_ks = 5, spatial_dim: int = 2, *args, **kwargs) -> None:
+    def __init__(self, num_ks = 5, spatial_dim: int = 2, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.num_ks = num_ks
         self.spatial_dim = spatial_dim
-        self.fourier_coefficients = self.solve_for_fourier_coefficients(points, values)
         
-    def forward(self, points):
+    def forward(self, points_source, values_source, points_target):
         """ approximates the function at the given points using the fourier coefficients """
-        basis = self.generate_fourier_basis(points)
+        fourier_coefficients = self.solve_for_fourier_coefficients(points_source, values_source)
+        basis = self.generate_fourier_basis(points_target)
         
-        reconstruction = (basis @ self.fourier_coefficients).real
+        reconstruction = (basis @ fourier_coefficients).real
         return reconstruction
     
     def generate_fourier_basis(self, points):

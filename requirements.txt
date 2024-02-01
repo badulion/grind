@@ -4,3 +4,5 @@ pytorch_lightning
 torchrbf
 dynabench
 matplotlib
+torchdiffeq
+findiff
