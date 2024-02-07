@@ -1,12 +1,10 @@
-experiment_name: grind-test
-project_name: fouriernet
+defaults:
+  - datamodule: default
+  - model: grind
+  - trainer: default
 
-dataset:
-  _target_: src.dataset.Dynabench
-  split: train
-  equation: kuramotosivashinsky
-  structure: cloud
-  resolution: high
+experiment_name: test
+project_name: grind
   
 
 hydra:

@@ -11,7 +11,6 @@ class FourierInterpolator(nn.Module):
         """ approximates the function at the given points using the fourier coefficients """
         fourier_coefficients = self.solve_for_fourier_coefficients(points_source, values_source)
         basis = self.generate_fourier_basis(points_target)
-        
         reconstruction = (basis @ fourier_coefficients).real
         return reconstruction
     

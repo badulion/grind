@@ -6,3 +6,5 @@ dynabench
 matplotlib
 torchdiffeq
 findiff
+tensorboard
+wandb

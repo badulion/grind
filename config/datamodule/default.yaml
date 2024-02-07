@@ -1,0 +1,9 @@
+_target_: src.dataset.datamodule.DynabenchDataModule
+equation: advection
+structure: cloud
+resolution: high
+batch_size: 16
+num_workers: 4
+train_rollout: 1
+val_rollout: 1
+test_rollout: 16

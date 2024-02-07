@@ -1,0 +1,16 @@
+_target_: src.model.lightning.Model
+learning_rate: 0.001
+net: 
+  _target_: src.model.grind.GrIND
+  input_dim: 1
+  spatial_dim: 2
+  max_order: 2
+  accuracy: 1
+  symnet_hidden_size: 64
+  symnet_hidden_layers: 2
+  num_ks: 21
+  grid_resolution: 64
+  solver:
+    method: 'euler'
+    options:
+      step_size: 0.05
