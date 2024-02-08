@@ -1,15 +1,18 @@
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import pytorch_lightning as pl
 
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 from typing import List
 
-from .modules import FinDiffNet, GridStencil
+from .modules import FinDiffNet
 from .inverse_nufft import FourierInterpolator
 
-class GrIND(torch.nn.Module):
+
+class GrIND(pl.LightningModule):
     def __init__(self, 
                  input_dim: int,
                  spatial_dim: int = 2,
@@ -20,8 +23,11 @@ class GrIND(torch.nn.Module):
                  num_ks: int = 21,
                  grid_resolution: int = 64,
                  solver: dict = {"method": "dopri5"},
+                 learning_rate: float = 1e-3,
+                 weight_decay: float = 0.0,
                  *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
+        self.save_hyperparameters()
         self.grid_resolution = grid_resolution
         
         self.fourier_interpolator = FourierInterpolator(num_ks=num_ks, spatial_dim=2)
@@ -64,35 +70,35 @@ class GrIND(torch.nn.Module):
         x_pred = self.fourier_interpolator(self.interpolation_points.view(1,1,*self.interpolation_points.shape), x_pred, p.unsqueeze(1))
         return x_pred
         
-
+    def step(self, batch, batch_idx, stage):
+        x, y, p = batch
+        rollout = y.size(1)
+        t_eval = range(rollout+1)
+        y_pred = self(x, p, t_eval=t_eval)
+        loss = F.mse_loss(y_pred, y)
+        return loss, y_pred, y
+    
+    def training_step(self, batch, batch_idx):
+        loss, y_pred, y = self.step(batch, batch_idx, "train")
+        self.log("train_loss", loss, prog_bar=True)
+        return loss
+    
+    def validation_step(self, batch, batch_idx):
+        loss, y_pred, y = self.step(batch, batch_idx, "val")
+        self.log("val_loss", loss)
+        return loss
+    
+    def test_step(self, batch, batch_idx):
+        loss, y_pred, y = self.step(batch, batch_idx, "test")
+        self.log("test_loss", loss)
+        return loss
+        
+    def configure_optimizers(self):
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.hparams.learning_rate, weight_decay=self.hparams.weight_decay)
+        return optimizer
 
 
     
 
 if __name__ == "__main__":
-    
-    from dynabench.dataset.iterator import DynabenchIterator
-    
-    ds = DynabenchIterator("train", equation="kuramotosivashinsky", structure="grid", resolution="full")
-    
-    x = np.concatenate([ds[18][0], ds[1234][0], ds[156][0]], axis=1)
-    x = torch.tensor(x, dtype=torch.float32)
-    
-    m = FinDiffNet(3, spatial_dim=2, max_order=2, dx=[1.0, 1.0], accuracy=1)
-    ders = m(x, t_eval=[0, 4e4]).detach().numpy()[-1]
-    print(ders.shape)
-
-    
-    # print(x.shape)
-    # m = GridStencil(3, accuracy=1)
-    # ders = m(x)
-    
-    import matplotlib.pyplot as plt
-    
-    # plot the original data in first row and the dx derivative in the second row
-    
-    fig, ax = plt.subplots(2, 3, figsize=(15, 10))
-    for i in range(3):
-        ax[0, i].imshow(x[0, i, :, :])
-        ax[1, i].imshow(ders[0,i, :, :])
-    plt.show()
+    pass

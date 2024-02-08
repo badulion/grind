@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from torchdiffeq import odeint_adjoint, odeint
 from findiff import FinDiff
 
-from typing import List
+from typing import List, Optional
 
 class FinDiffNet(nn.Module):
     def __init__(self, 
@@ -26,14 +26,21 @@ class FinDiffNet(nn.Module):
                                    dx=dx, 
                                    accuracy=accuracy)
         self.num_derivatives = self.findiff.num_derivatives
-        self.symnet = ConvMLPSymNet(input_size=input_dim*self.num_derivatives, 
-                                    output_size=input_dim, 
-                                    hidden_size=symnet_hidden_size, 
-                                    hidden_layers=symnet_hidden_layers)
+        self.instance_norm = nn.InstanceNorm2d(input_dim*self.num_derivatives, momentum = 0.01)
+        self.symnet = MLP(input_size=input_dim*self.num_derivatives, 
+                          output_size=input_dim, 
+                          hidden_size=symnet_hidden_size, 
+                          hidden_layers=symnet_hidden_layers)
+
         self.solver = solver
         self.use_adjoint = use_adjoint
     def _ode(self, t, x):
-        return self.symnet(self.findiff(x))
+        x = self.findiff(x)
+        x = self.instance_norm(x)
+        x = x.permute(0,2,3,1)
+        x = self.symnet(x)
+        x = x.permute(0,3,1,2)
+        return x
     
     def forward(self, x, t_eval=[0.0, 1.0]):
         t_eval = torch.tensor(t_eval, dtype=x.dtype, device=x.device)
@@ -41,6 +48,45 @@ class FinDiffNet(nn.Module):
             return odeint_adjoint(self._ode, x, t_eval, **self.solver, adjoint_params=self.symnet.parameters())[1:]
         else:
             return odeint(self._ode, x, t_eval, **self.solver)[1:]
+
+class MLP(nn.Module):
+    def __init__(self, input_size, output_size, 
+                 hidden_size: int = 64, 
+                 hidden_layers: int = 1) -> None:
+        super().__init__()
+        self.input_size = input_size
+        self.output_size = output_size
+        self.hidden_size = hidden_size
+        self.hidden_layers = hidden_layers
+
+        self.input_layer = nn.Linear(input_size, hidden_size)
+
+        self.hidden_layers = nn.ModuleList([nn.Linear(hidden_size, hidden_size) for _ in range(hidden_layers-1)])
+        self.output_layer = nn.Linear(hidden_size, output_size)
+        self.activation = nn.ReLU()
+
+        # initialize layers
+        nn.init.normal_(self.input_layer.weight, std = 0.001)
+        nn.init.zeros_(self.input_layer.bias)
+        
+        for layer in self.hidden_layers:
+            nn.init.normal_(layer.weight, std = 0.001)
+            nn.init.zeros_(layer.bias)
+
+        nn.init.normal_(self.output_layer.weight, std = 0.001)
+        nn.init.zeros_(self.output_layer.bias)
+
+
+    def forward(self, x):
+        x = self.input_layer(x)
+        x = self.activation(x)
+
+        for layer in self.hidden_layers:
+            x = layer(x)
+            x = self.activation(x)
+
+        x = self.output_layer(x)
+        return x
 
 class ConvMLPSymNet(torch.nn.Module):
     def __init__(self, input_size, output_size, hidden_size, hidden_layers=1, *args, **kwargs) -> None:
@@ -96,6 +142,10 @@ class GridStencil(nn.Module):
         self.list_of_derivative_orders = GridStencil._generate_list_of_derivatives(num_dims=self.spatial_dim, max_order=self.max_order)
         self.num_derivatives = len(self.list_of_derivative_orders)
         self.list_of_stencils = [self._generate_stencil(derivative, accuracy=accuracy) for derivative in self.list_of_derivative_orders]
+        
+        # calculate filter kernel size
+        self.filter_size = max([max([max([abs(s) for s in positions]) for positions in stencil.keys()]) for stencil in self.list_of_stencils])
+    
         self.list_of_filters = [self._generate_stencil_filter(stencil) for stencil in self.list_of_stencils]
         self.single_findiff_filter = torch.stack(self.list_of_filters, dim=0)
         self.filter = self._generate_convolution(self.single_findiff_filter)
@@ -105,7 +155,7 @@ class GridStencil(nn.Module):
         if self.filter.device != x.device:
             self.filter = self.filter.to(x.device)
         
-        x_padded = F.pad(x, [self.accuracy]*self.spatial_dim*2, mode="circular")
+        x_padded = F.pad(x, [self.filter_size]*self.spatial_dim*2, mode="circular")
         return F.conv2d(x_padded, self.filter)
     
     def _compositions(n, k):
@@ -136,14 +186,14 @@ class GridStencil(nn.Module):
         #dif_op = FinDiff((0,1,0) (1,1,1))
         
         #print(laplacian.stencil([50,50]))
-        stencil = dif_op.stencil([accuracy*4+1]*2).data['C', 'C']
+        stencil = dif_op.stencil([(accuracy+self.max_order)**2]*2).data['C', 'C']
         #print(dir(stencil))
         return stencil
     
     def _generate_stencil_filter(self, stencil):
-        findiff_filter = torch.zeros([self.accuracy*2+1]*self.spatial_dim)
+        findiff_filter = torch.zeros([self.filter_size*2+1]*self.spatial_dim)
         for position, value in stencil.items():
-            position = tuple(p + self.accuracy for p in position)
+            position = tuple(p + self.filter_size for p in position)
             findiff_filter[position] = value
         return findiff_filter
     
@@ -156,3 +206,12 @@ class GridStencil(nn.Module):
             single_variable_convolution = torch.cat(single_variable_convolution, dim=0)
             per_variable_convolutions.append(single_variable_convolution)
         return torch.stack(per_variable_convolutions, dim=1)
+    
+    
+    
+if __name__ == "__main__":
+    # test the findiffnet layer on a random tensor
+    x = torch.randn(1,3,64,64)
+    m = FinDiffNet(3, 2)
+    
+    pred = m(x)

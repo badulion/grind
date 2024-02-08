@@ -15,8 +15,8 @@ def main(cfg):
     
     trainer = instantiate(cfg.trainer)
     
-    #trainer.fit(model, datamodule)
-    trainer.test(model, datamodule, ckpt_path="output/tb_logs/lightning_logs/advection-high-cloud-test-euler/checkpoints/epoch=0-step=10000.ckpt")
+    trainer.fit(model, datamodule)
+    trainer.test(model, datamodule)
 
 if __name__ == "__main__":
     main()
