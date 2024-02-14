@@ -28,8 +28,8 @@ class FinDiffNet(nn.Module):
                                    accuracy=accuracy)
         self.num_derivatives = self.findiff.num_derivatives
         if use_instance_norm:
-            self.instance_norm = nn.InstanceNorm2d(input_dim*self.num_derivatives, momentum = 0.01)
-        self.symnet = MLP(input_size=input_dim*self.num_derivatives, 
+            self.instance_norm = nn.InstanceNorm2d(input_dim*(self.num_derivatives+1), momentum = 0.01)
+        self.symnet = MLP(input_size=input_dim*(self.num_derivatives+1), 
                           output_size=input_dim, 
                           hidden_size=symnet_hidden_size, 
                           hidden_layers=symnet_hidden_layers)
@@ -37,7 +37,9 @@ class FinDiffNet(nn.Module):
         self.solver = solver
         self.use_adjoint = use_adjoint
     def _ode(self, t, x):
+        u = x
         x = self.findiff(x)
+        x = torch.cat([u, x], dim=1)
         if hasattr(self, "instance_norm"):
             x = self.instance_norm(x)
         x = x.permute(0,2,3,1)
