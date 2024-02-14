@@ -9,7 +9,7 @@ num_ks: 21
 grid_resolution: 64
 use_smoother: False
 use_adjoint: False
-use_instance_norm: False
+use_instance_norm: True
 solver:
   method: 'euler'
   options:
