@@ -28,7 +28,6 @@ class DynabenchDataset(torch.utils.data.Dataset):
             structure=self.structure,
             resolution=self.resolution,
             rollout=self.rollout,
-            lookback=16
         )
 
     
