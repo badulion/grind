@@ -29,6 +29,8 @@ class GrIND(pl.LightningModule):
                  num_ks: int = 21,
                  grid_resolution: int = 64,
                  use_adjoint: bool = False,
+                 use_smoother: bool = False,
+                 use_instance_norm: bool = True,
                  solver: dict = {"method": "dopri5"},
                  learning_rate: float = 1e-3,
                  weight_decay: float = 0.0,
@@ -40,10 +42,11 @@ class GrIND(pl.LightningModule):
         
         self.fourier_interpolator = FourierInterpolator(num_ks=num_ks, spatial_dim=2)
         self.interpolation_points = self.generate_interpolation_points(grid_resolution)
-        self.smoother = SimpleCNN(input_size=input_dim, 
-                                  hidden_layers=smoother_hidden_size,
-                                  hidden_channels=smoother_hidden_layers,
-                                  kernel_size=smoother_kernel_size)
+        if use_smoother:
+            self.smoother = SimpleCNN(input_size=input_dim, 
+                                    hidden_layers=smoother_hidden_size,
+                                    hidden_channels=smoother_hidden_layers,
+                                    kernel_size=smoother_kernel_size)
         
         self.solver_net = FinDiffNet(
             input_dim=input_dim,
@@ -54,6 +57,7 @@ class GrIND(pl.LightningModule):
             symnet_hidden_size=symnet_hidden_size,
             symnet_hidden_layers=symnet_hidden_layers,
             solver=solver,
+            use_instance_norm=use_instance_norm,
             use_adjoint=use_adjoint
         )
         
@@ -74,7 +78,8 @@ class GrIND(pl.LightningModule):
         x_grid = x_grid.permute(0, 3, 1, 2)
         
         # resnet smoother
-        x_grid = x_grid + self.smoother(x_grid)
+        if hasattr(self, "smoother"):
+            x_grid = x_grid + self.smoother(x_grid)
         
         # run solver
         x_pred = self.solver_net(x_grid, t_eval=t_eval)
@@ -82,7 +87,6 @@ class GrIND(pl.LightningModule):
         # interpolate back to the original points
         x_pred = x_pred.permute(1, 0, 3, 4, 2)
         x_pred = x_pred.reshape(x.shape[0], len(t_eval[1:]), self.grid_resolution**2, x.shape[-1])
-        int_p_expanded = self.interpolation_points.view(1,1,*self.interpolation_points.shape).expand(len(t_eval), x.shape[0], -1,-1)
         x_pred = self.fourier_interpolator(self.interpolation_points.view(1,1,*self.interpolation_points.shape), x_pred, p.unsqueeze(1))
         return x_pred
         

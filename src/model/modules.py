@@ -16,6 +16,7 @@ class FinDiffNet(nn.Module):
                  symnet_hidden_size: int = 64,
                  symnet_hidden_layers: int = 1,
                  solver: dict = {"method": "dopri5"},
+                 use_instance_norm: bool = True,
                  use_adjoint: bool = True,
                 *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -26,7 +27,8 @@ class FinDiffNet(nn.Module):
                                    dx=dx, 
                                    accuracy=accuracy)
         self.num_derivatives = self.findiff.num_derivatives
-        self.instance_norm = nn.InstanceNorm2d(input_dim*self.num_derivatives, momentum = 0.01)
+        if use_instance_norm:
+            self.instance_norm = nn.InstanceNorm2d(input_dim*self.num_derivatives, momentum = 0.01)
         self.symnet = MLP(input_size=input_dim*self.num_derivatives, 
                           output_size=input_dim, 
                           hidden_size=symnet_hidden_size, 
@@ -36,7 +38,8 @@ class FinDiffNet(nn.Module):
         self.use_adjoint = use_adjoint
     def _ode(self, t, x):
         x = self.findiff(x)
-        x = self.instance_norm(x)
+        if hasattr(self, "instance_norm"):
+            x = self.instance_norm(x)
         x = x.permute(0,2,3,1)
         x = self.symnet(x)
         x = x.permute(0,3,1,2)
