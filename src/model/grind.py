@@ -9,8 +9,11 @@ import numpy as np
 from typing import List
 
 from .modules import FinDiffNet
+from .cnn import SimpleCNN
 from .inverse_nufft import FourierInterpolator
 
+
+                 
 
 class GrIND(pl.LightningModule):
     def __init__(self, 
@@ -20,11 +23,16 @@ class GrIND(pl.LightningModule):
                  accuracy: int = 1,
                  symnet_hidden_size: int = 64,
                  symnet_hidden_layers: int = 1,
+                 smoother_hidden_size: int = 32,
+                 smoother_hidden_layers: int = 4,
+                 smoother_kernel_size: int = 7,
                  num_ks: int = 21,
                  grid_resolution: int = 64,
+                 use_adjoint: bool = False,
                  solver: dict = {"method": "dopri5"},
                  learning_rate: float = 1e-3,
                  weight_decay: float = 0.0,
+                 training_noise: float = 0.0,
                  *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.save_hyperparameters()
@@ -32,6 +40,10 @@ class GrIND(pl.LightningModule):
         
         self.fourier_interpolator = FourierInterpolator(num_ks=num_ks, spatial_dim=2)
         self.interpolation_points = self.generate_interpolation_points(grid_resolution)
+        self.smoother = SimpleCNN(input_size=input_dim, 
+                                  hidden_layers=smoother_hidden_size,
+                                  hidden_channels=smoother_hidden_layers,
+                                  kernel_size=smoother_kernel_size)
         
         self.solver_net = FinDiffNet(
             input_dim=input_dim,
@@ -41,7 +53,8 @@ class GrIND(pl.LightningModule):
             accuracy=accuracy,
             symnet_hidden_size=symnet_hidden_size,
             symnet_hidden_layers=symnet_hidden_layers,
-            solver=solver
+            solver=solver,
+            use_adjoint=use_adjoint
         )
         
         
@@ -60,6 +73,9 @@ class GrIND(pl.LightningModule):
         x_grid = x_grid.view(x.shape[0], self.grid_resolution, self.grid_resolution, x.shape[-1])
         x_grid = x_grid.permute(0, 3, 1, 2)
         
+        # resnet smoother
+        x_grid = x_grid + self.smoother(x_grid)
+        
         # run solver
         x_pred = self.solver_net(x_grid, t_eval=t_eval)
         
@@ -74,6 +90,8 @@ class GrIND(pl.LightningModule):
         x, y, p = batch
         rollout = y.size(1)
         t_eval = range(rollout+1)
+        if stage == "train":
+            x += torch.randn_like(x) * self.hparams.training_noise
         y_pred = self(x, p, t_eval=t_eval)
         loss = F.mse_loss(y_pred, y)
         return loss, y_pred, y

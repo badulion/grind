@@ -15,8 +15,8 @@ def main(cfg):
     
     trainer = instantiate(cfg.trainer)
     
-    trainer.fit(model, datamodule)
-    trainer.test(model, datamodule)
+    trainer.fit(model, datamodule, ckpt_path="last")
+    trainer.test(model, datamodule, ckpt_path="best")
 
 if __name__ == "__main__":
     main()

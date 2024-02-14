@@ -4,6 +4,6 @@ structure: cloud
 resolution: high
 batch_size: 16
 num_workers: 16
-train_rollout: 1
-val_rollout: 1
+train_rollout: 4
+val_rollout: 16
 test_rollout: 16

@@ -1,4 +1,4 @@
-_target_: src.model.grind.GrIND
+_target_: src.model.grind_interpolator.GrINDInterpolator
 input_dim: 1
 spatial_dim: 2
 max_order: 4

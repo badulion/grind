@@ -16,7 +16,7 @@ class FinDiffNet(nn.Module):
                  symnet_hidden_size: int = 64,
                  symnet_hidden_layers: int = 1,
                  solver: dict = {"method": "dopri5"},
-                 use_adjoint: bool = False,
+                 use_adjoint: bool = True,
                 *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         

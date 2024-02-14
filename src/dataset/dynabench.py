@@ -27,7 +27,8 @@ class DynabenchDataset(torch.utils.data.Dataset):
             equation=self.equation,
             structure=self.structure,
             resolution=self.resolution,
-            rollout=self.rollout
+            rollout=self.rollout,
+            lookback=16
         )
 
     
@@ -39,4 +40,4 @@ class DynabenchDataset(torch.utils.data.Dataset):
         x, y, p = self.iterator[index]
 
 
-        return x[0].astype(np.float32), y.astype(np.float32), p.astype(np.float32)
+        return x[-1].astype(np.float32), y.astype(np.float32), p.astype(np.float32)
