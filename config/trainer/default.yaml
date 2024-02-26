@@ -3,6 +3,7 @@ max_epochs: 100
 limit_train_batches: 1000
 limit_val_batches: 100
 limit_test_batches: 1000
+val_check_interval: 0.2
 gradient_clip_val: 0.5
 
 accelerator: gpu
@@ -14,14 +15,14 @@ callbacks:
     monitor: val_loss
     mode: min
     dirpath: ./output/checkpoints/${project_name}/${experiment_name}
-    filename: "{epoch}-{step}-{val_loss:.2f}"
+    filename: "{epoch}-{step}-{val_loss:.5f}"
 logger:
   - _target_: pytorch_lightning.loggers.TensorBoardLogger
     save_dir: ./output/tb_logs
-    version: ${experiment_name}
+    version: ${experiment_name}${logging_suffix}
     name: ${project_name}
   - _target_: pytorch_lightning.loggers.wandb.WandbLogger
-    name: ${experiment_name}
+    name: ${experiment_name}${logging_suffix}
     offline: False
     project: ${project_name}
     entity: magnet4cardiac7t

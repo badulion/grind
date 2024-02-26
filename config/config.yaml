@@ -5,6 +5,10 @@ defaults:
 
 experiment_name: test
 project_name: grind
+logging_suffix: _finetune
+
+train_from_checkpoint: last
+test_from_checkpoint: best
   
 
 hydra:

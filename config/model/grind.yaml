@@ -8,12 +8,12 @@ symnet_hidden_layers: 3
 num_ks: 21
 grid_resolution: 64
 use_smoother: False
-use_adjoint: False
+use_adjoint: True
 use_instance_norm: True
 solver:
   method: 'euler'
   options:
-    step_size: 0.05
+    step_size: 0.01
 learning_rate: 0.001
 weight_decay: 0.0
 training_noise: 0.0
