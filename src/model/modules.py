@@ -99,7 +99,7 @@ class MLP(nn.Module):
 
         self.hidden_layers = nn.ModuleList([nn.Linear(hidden_size, hidden_size) for _ in range(hidden_layers-1)])
         self.output_layer = nn.Linear(hidden_size, output_size)
-        self.activation = nn.ReLU()
+        self.activation = nn.GELU()
 
         # initialize layers
         nn.init.normal_(self.input_layer.weight, std = 0.001)
@@ -135,7 +135,7 @@ class ConvMLPSymNet(torch.nn.Module):
         self.input_layer = torch.nn.Conv2d(input_size, hidden_size, kernel_size=1)
         self.hidden_layers = torch.nn.ModuleList([torch.nn.Conv2d(hidden_size, hidden_size, kernel_size=1) for _ in range(hidden_layers-1)])
         self.output_layer = torch.nn.Conv2d(hidden_size, output_size, kernel_size=1)
-        self.activation = torch.nn.ReLU()
+        self.activation = torch.nn.GELU()
 
         # initialize layers
         torch.nn.init.normal_(self.input_layer.weight, std = 0.001)

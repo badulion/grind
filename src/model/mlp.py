@@ -17,7 +17,7 @@ class MLP(nn.Module):
 
         self.hidden_layers = nn.ModuleList([nn.Linear(hidden_size, hidden_size) for _ in range(hidden_layers-1)])
         self.output_layer = nn.Linear(hidden_size, output_size)
-        self.activation = nn.ReLU()
+        self.activation = nn.GELU()
 
         if self.input_size is not None:
             # initialize layers
@@ -55,7 +55,7 @@ class ResnetBlock(nn.Module):
         self.input_layer = nn.Linear(input_size, hidden_size)
         self.hidden_layer = nn.Linear(hidden_size, hidden_size)
         self.output_layer = nn.Linear(hidden_size, output_size)
-        self.activation = nn.ReLU()
+        self.activation = nn.GELU()
 
         # initialize layers
         nn.init.normal_(self.input_layer.weight, std = 0.001)

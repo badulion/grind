@@ -7,7 +7,7 @@ class ResBlock(nn.Module):
         super().__init__()
         self.conv1 = nn.Conv2d(channels, channels, 3, padding='same', padding_mode='circular')
         self.conv2 = nn.Conv2d(channels, channels, 3, padding='same', padding_mode='circular')
-        self.activation = nn.ReLU()
+        self.activation = nn.GELU()
 
     def forward(self, x):
         residual = x
@@ -28,7 +28,7 @@ class SimpleResnet(nn.Module):
         resblock_list = [ResBlock(resblock_channels) for i in range(resblock_layers)]
         self.model = nn.Sequential(
             nn.Conv2d(input_dim, resblock_channels, 3, padding='same', padding_mode='circular'),
-            nn.ReLU(),
+            nn.GELU(),
             *resblock_list,
             nn.Conv2d(resblock_channels, input_dim, 3, padding='same', padding_mode='circular')
         )
