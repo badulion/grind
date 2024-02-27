@@ -37,8 +37,8 @@ def main(cfg):
     trainer = instantiate(cfg.trainer)
     
     checkpoint_path = find_best_checkpoint(cfg.trainer.callbacks[0].dirpath)
-    #trainer.fit(model, datamodule, ckpt_path=cfg.train_from_checkpoint)
-    trainer.test(model, datamodule, ckpt_path=checkpoint_path)
+    trainer.fit(model, datamodule, ckpt_path=cfg.train_from_checkpoint)
+    trainer.test(model, datamodule, ckpt_path=cfg.test_from_checkpoint)
 
 if __name__ == "__main__":
     main()

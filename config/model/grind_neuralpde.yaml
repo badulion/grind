@@ -1,0 +1,18 @@
+_target_: src.model.grind_neuralpde.GrIND_NeuralPDE
+input_dim: 1
+cnn_hidden_size: 256
+cnn_hidden_layers: 4
+num_ks: 21
+grid_resolution: 64
+use_smoother: False
+smoother_hidden_size: 128
+smoother_hidden_layers: 4
+smoother_kernel_size: 7
+use_adjoint: False
+solver:
+  method: 'euler'
+  options:
+    step_size: 1
+learning_rate: 0.001
+weight_decay: 0.0
+training_noise: 0.1

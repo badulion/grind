@@ -5,24 +5,19 @@ import pytorch_lightning as pl
 
 import numpy as np
 
-
 from typing import List
 
-from .modules import FinDiffNet, CNNSolver
+from .modules import CNNSolver
 from .cnn import SimpleCNN
 from .inverse_nufft import FourierInterpolator
 
-                 
 
-class GrIND(pl.LightningModule):
+class GrIND_NeuralPDE(pl.LightningModule):
     def __init__(self, 
                  input_dim: int,
-                 spatial_dim: int = 2,
-                 max_order: int = 2,
-                 accuracy: int = 1,
-                 symnet_hidden_size: int = 64,
-                 symnet_hidden_layers: int = 1,
-                 smoother_hidden_size: int = 32,
+                 cnn_hidden_size: int = 64,
+                 cnn_hidden_layers: int = 1,
+                 smoother_hidden_size: int = 64,
                  smoother_hidden_layers: int = 4,
                  smoother_kernel_size: int = 7,
                  num_ks: int = 21,
@@ -47,16 +42,11 @@ class GrIND(pl.LightningModule):
                                     hidden_channels=smoother_hidden_layers,
                                     kernel_size=smoother_kernel_size)
         
-        self.solver_net = FinDiffNet(
+        self.solver_net = CNNSolver(
             input_dim=input_dim,
-            spatial_dim=spatial_dim,
-            max_order=max_order,
-            dx=[1/grid_resolution]*spatial_dim,
-            accuracy=accuracy,
-            symnet_hidden_size=symnet_hidden_size,
-            symnet_hidden_layers=symnet_hidden_layers,
+            cnn_hidden_layers=cnn_hidden_layers,
+            cnn_hidden_size=cnn_hidden_size,
             solver=solver,
-            use_instance_norm=use_instance_norm,
             use_adjoint=use_adjoint
         )
         
@@ -94,7 +84,8 @@ class GrIND(pl.LightningModule):
         rollout = y.size(1)
         t_eval = range(rollout+1)
         if stage == "train":
-            x += torch.randn_like(x) * self.hparams.training_noise
+            noise_strength = np.random.uniform(0, self.hparams.training_noise) 
+            x += torch.randn_like(x) * noise_strength
         y_pred = self(x, p, t_eval=t_eval)
         loss = F.mse_loss(y_pred, y)
         return loss, y_pred, y
@@ -120,9 +111,6 @@ class GrIND(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.hparams.learning_rate, weight_decay=self.hparams.weight_decay)
         return optimizer
-
-
-    
 
 if __name__ == "__main__":
     pass
