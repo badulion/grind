@@ -5,3 +5,4 @@ kubernetes/
 **__pycache__/
 **.pyc
 **local/
+notebooks/

@@ -1,5 +1,5 @@
 _target_: src.dataset.datamodule.DynabenchDataModule
-equation: advection
+equation: kuramotosivashinsky
 structure: cloud
 resolution: high
 batch_size: 16

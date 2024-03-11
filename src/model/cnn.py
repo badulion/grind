@@ -12,7 +12,7 @@ class SimpleCNN(nn.Module):
         for i in range(hidden_layers):
             conv_layer = nn.Conv2d(hidden_channels, hidden_channels, kernel_size, padding='same', padding_mode='circular')
             hidden_list.append(conv_layer)
-            hidden_list.append(nn.ReLU())
+            hidden_list.append(nn.GELU())
             
         self.model = nn.Sequential(
             nn.Conv2d(input_size, hidden_channels, kernel_size, padding='same', padding_mode='circular'),
