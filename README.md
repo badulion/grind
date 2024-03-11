@@ -1,22 +1,27 @@
 # GrIND: Grid Interpolation Network for Dynamical Systems
 
-This is the repository containing the source code of the GrIND model paper __GrIND: Grid Interpolation Network for Scattered observation__.
+This is the repository containing the source code of the GrIND model paper [__GrIND: Grid Interpolation Network for Scattered observation__](xx).
 
 GrIND is a novel deep learning architecture for learning from physical systems governed by differential equations. It can be used to smiulate sytsems such as climate, fluids, electormagnetic fields, etc..
-The model is based on an ODE solving algorithm to approximate the future features of the nodes by interpolating between the arbitrarily located neighboring nodes.
-Fourier interpolation leads to a grid structure which can be used with standard DE solving algorithms to find the feature tensor of the next time step.
-A neural network is used to map the feature tensor to its derivatives.
-The structure of the GrIND model is simplified in the following graphic.
+The model consists of a Fourier Interpolation layer to increase the data density and transform the scattered nodes to a grid structure suitable for convolutions.
+A CNN is used as a solving algorithm to learn the spatial derivatives of the differential equations in the high resolution domain.
+Finally another Fourier Interpolation layer is used to transform the data back to the original nodes and update these according to the time-derivative.
 
-![GrIND pictogram](Img/GrIND.png)
+<p align="center">
+<img src=Img/GrIND.png>
+</p>
 
-![GrIND 1](Img/figure1.png)
+<p align="center">
+<img src=Img/figure1.png>
+</p>
 
 The fourier layer is further visualised in the following graphic.
 Originally, a low resolution function is represented at single nodes.
 These are then interpolated to generate a more dense function which is better suited for the solving algorithm.
 
-![GrIND Layer](Img/fourier_layer.png)
+<p align="center">
+<img src=Img/fourier_layer.png>
+</p>
 
 ## Setup
 It is recommended to first create a virtual environment, for example:
@@ -38,11 +43,11 @@ To test the model execute the main file
 To configure the training process and the model, check the config files and adjust parameters to your liking.
 
 ## Benchmark Results
-The model is tested on the dynabench dataset for learning dynamical systems from data __Dynabench: A benchmark dataset for learning dynamical systems from low-resolution data__ (accepted at ECML-PKDD 2023).
+The model is tested on the dynabench dataset for learning dynamical systems from low resolution data: [__Dynabench: A benchmark dataset for learning dynamical systems from low-resolution data__](https://arxiv.org/abs/2306.05805).
 
 Here ares some results of our model on the given equations. More results and comparisons with similar models can be found in the paper.
 
-| equation / time steps| 1          | 16         |
+| Equation             | 1 dt       | 16 dt      |
 |----------------------|------------|------------|
 | Advection            | 6.11e-3    | 1.03e-1    |
 | Burgers              | 1.03e-2    | 2.24e-1    |
