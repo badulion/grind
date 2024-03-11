@@ -47,11 +47,7 @@ The model is tested on the dynabench dataset for learning dynamical systems from
 
 Here ares some results of our model on the given equations. More results and comparisons with similar models can be found in the paper.
 
-| Equation             | 1 dt       | 16 dt      |
-|----------------------|------------|------------|
-| Advection            | 6.11e-3    | 1.03e-1    |
-| Burgers              | 1.03e-2    | 2.24e-1    |
-| Gas Dynamics         | 8.49e-2    | 5.40e-1    |
-| Kuramoto-Sivashinsky | 1.23e-1    | 1.00e0     |
-| Reaction-Diffusion   | 2.72e-2    | 2.95e-1    |
-| Wave                 | 4.74e-2    | 3.12e-1    |
+| Equation             | Advection  | Burgers    | Gas Dynamics | Kuramoto-Sivashinsky | Reaction-Diffusion  | Wave       |
+|:---------------------|:----------:|:----------:|:------------:|:--------------------:|:-------------------:|:----------:|
+| 1 dt                 | 6.11e-3    | 1.03e-2    | 8.49e-2      | 1.23e-1              | 2.72e-2             | 4.74e-2    |
+| 16 dt                | 1.03e-1    | 2.24e-1    | 5.40e-1      | 1.00e0               | 2.95e-1             | 3.12e-1    |
