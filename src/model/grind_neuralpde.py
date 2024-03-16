@@ -97,7 +97,7 @@ class GrIND_NeuralPDE(pl.LightningModule):
     
     def validation_step(self, batch, batch_idx):
         loss, y_pred, y = self.step(batch, batch_idx, "val")
-        self.log("val_loss", loss)
+        self.log("val_loss", loss, prog_bar=True)
         return loss
     
     def test_step(self, batch, batch_idx):

@@ -3,6 +3,7 @@ from pytorch_lightning.utilities.types import EVAL_DATALOADERS
 from torch.utils.data import DataLoader, random_split
 
 from .dynabench import DynabenchDataset
+from dynabench.dataset.download import download_equation
 
 
 
@@ -66,6 +67,9 @@ class DynabenchDataModule(LightningDataModule):
                 base_path=self.base_path,
                 rollout=self.test_rollout,
             )
+
+    def download_equation(self):
+        download_equation(self.equation, self.structure, self.resolution, self.base_path)
 
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=True)

@@ -20,10 +20,10 @@ class SimpleCNN(nn.Module):
             *hidden_list,
             nn.Conv2d(hidden_channels, input_size, kernel_size, padding='same', padding_mode='circular')
         )
-        for layer in self.model:
-            if isinstance(layer, nn.Conv2d):
-                nn.init.normal_(layer.weight, std = 0.001)
-                nn.init.zeros_(layer.bias)
+        # for layer in self.model:
+        #     if isinstance(layer, nn.Conv2d):
+        #         nn.init.normal_(layer.weight, std = 0.001)
+        #         nn.init.zeros_(layer.bias)
 
     def forward(self, x):
         return self.model(x)

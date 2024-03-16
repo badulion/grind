@@ -1,0 +1,9 @@
+_target_: src.dataset.datamodule.DynabenchDataModule
+equation: wave
+structure: cloud
+resolution: high
+batch_size: 1
+num_workers: 16
+train_rollout: 64
+val_rollout: 64
+test_rollout: 64

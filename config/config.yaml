@@ -1,16 +1,16 @@
 defaults:
-  - datamodule: interpolation
-  - model: interpolation_tester
+  - datamodule: default
+  - model: grind_neuralpde
   - trainer: default
 
 experiment_name: interpolation-test
-project_name: grind-neuralpde
+project_name: grind-neuralpde-final
 logging_suffix: ""
 
 train_from_checkpoint: last
-test_from_checkpoint: 
+test_from_checkpoint: best
 
-train: False
+train: True
 test: True
 
 hydra:
