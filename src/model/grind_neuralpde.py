@@ -104,7 +104,7 @@ class GrIND_NeuralPDE(pl.LightningModule):
         loss, y_pred, y = self.step(batch, batch_idx, "test")
         stepwise_mse = (y_pred - y).pow(2).mean(dim=[0,2,3])
         for i, mse in enumerate(stepwise_mse):
-            self.log(f"test_loss_t{i+1}", mse)
+            self.log(f"test_rollout_{i+1}", mse)
         self.log("test_loss", loss)
         return loss
         
